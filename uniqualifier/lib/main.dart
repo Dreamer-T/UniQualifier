@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'search.dart';
+
 void main() {
   runApp(Uniqualifier());
 }
@@ -8,18 +10,18 @@ void main() {
 class Uniqualifier extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    /// 没懂为啥是 MaterialApp
     return MaterialApp(
       title: 'Flutter Login Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
       ),
 
       /// 设置主界面
       home: LoginScreen(),
       routes: {
         '/home': (BuildContext context) => LoginScreen(),
-        '/home/admin': (BuildContext context) => MainScreen(),
+        '/home/main': (BuildContext context) => MainScreen(),
+        '/home/camera': (BuildContext context) => MainScreen(),
       },
     );
   }
@@ -43,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // Perform login logic here
     print('Username: $username');
     print('Password: $password');
-    Navigator.pushNamed(context, "/home/admin");
+    Navigator.pushNamed(context, "/home/main");
   }
 
   @override
@@ -92,59 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// 第二个界面：主界面，不可改变
-class MainScreen extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => _MainScreenState();
-}
-
-/// 界面创建
-class _MainScreenState extends State<MainScreen> {
-  // 当前选中的页面索引
-  int _currentIndex = 0;
-
-  // 页面列表
-  final List<Widget> _pages = [
-    Center(child: Text('Home Page')),
-    Center(child: Text('Search Page')),
-    Center(child: Text('Profile Page')),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Main Screen'),
-      ),
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onItemTapped,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }
