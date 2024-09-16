@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uniqualifier/camera.dart';
+import 'package:uniqualifier/profile.dart';
 
 import 'search.dart';
 
@@ -21,7 +23,8 @@ class Uniqualifier extends StatelessWidget {
       routes: {
         '/home': (BuildContext context) => LoginScreen(),
         '/home/main': (BuildContext context) => MainScreen(),
-        '/home/camera': (BuildContext context) => MainScreen(),
+        '/home/camera': (BuildContext context) => CameraScreen(),
+        '/home/profile': (BuildContext context) => ProfileScreen(),
       },
     );
   }

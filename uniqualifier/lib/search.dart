@@ -1,7 +1,5 @@
-import 'dart:io';
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:uniqualifier/profile.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -11,53 +9,17 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
-  CameraController? _cameraController;
-  List<CameraDescription>? _cameras;
-  XFile? _galleryImage;
-  XFile? _capturedImage; // 保存拍摄的图片
 
   bool _isSearching = false; // 是否处于搜索状态
 
-  final List<Widget> _pages = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeCamera();
-  }
-
-  Future<void> _initializeCamera() async {
-    _cameras = await availableCameras();
-    if (_cameras != null && _cameras!.isNotEmpty) {
-      _cameraController = CameraController(_cameras![0], ResolutionPreset.high);
-      await _cameraController!.initialize();
-      setState(() {
-        _pages.addAll([
-          Center(child: Text('History Page')),
-          _buildCameraPreview(), // Search page (camera)
-          Center(child: Text('Ask a teacher Page')),
-        ]);
-      });
-    }
-  }
-
-  Future<void> _pickImageFromGallery() async {
-    final ImagePicker _picker = ImagePicker();
-    XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      _galleryImage = image;
-    });
-  }
-
-  // 拍照功能
-  Future<void> _takePicture() async {
-    if (_cameraController != null && _cameraController!.value.isInitialized) {
-      XFile image = await _cameraController!.takePicture();
-      setState(() {
-        _capturedImage = image; // 保存拍摄的图片
-      });
-    }
-  }
+  final List<Widget> _pages = [
+    Center(
+      child: Text("History Page"),
+    ),
+    Center(
+      child: Text("Ask a teacher Page"),
+    ),
+  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -69,27 +31,33 @@ class _MainScreenState extends State<MainScreen>
   }
 
   @override
-  void dispose() {
-    _cameraController?.dispose();
-    super.dispose();
-  }
-
-  Widget _buildCameraPreview() {
-    return Center(child: Text('Search Page'));
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Main Screen'),
+      body: Stack(
+        children: [
+          _pages.isNotEmpty
+              ? _pages[_currentIndex]
+              : Center(child: CircularProgressIndicator()),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: IconButton(
+                  icon: Icon(Icons.person),
+                  iconSize: 40,
+                  onPressed: () {
+                    Navigator.of(context).push(_createPageTransition());
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-      body: _pages.isNotEmpty
-          ? _pages[_currentIndex]
-          : Center(child: CircularProgressIndicator()),
       bottomNavigationBar: BottomAppBar(
-        shape: _isSearching ? null : CircularNotchedRectangle(), // 切换底部的形状
-        notchMargin: _isSearching ? 0.0 : 10.0, // 根据是否处于搜索状态切换notchMargin
+        shape: _isSearching ? null : CircularNotchedRectangle(),
+        notchMargin: _isSearching ? 0.0 : 10.0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
@@ -102,44 +70,61 @@ class _MainScreenState extends State<MainScreen>
                 _onItemTapped(0);
               },
             ),
-            SizedBox(width: 40), // 中间留出位置给浮动按钮
+            SizedBox(width: 40), // 留出位置给浮动按钮
             IconButton(
               iconSize: 30.0,
               icon: Icon(Icons.school),
               tooltip: "Ask a teacher",
-              color: _currentIndex == 2 ? Colors.green : Colors.grey,
+              color: _currentIndex == 1 ? Colors.green : Colors.grey,
               onPressed: () {
-                _onItemTapped(2);
+                _onItemTapped(1);
               },
             ),
           ],
         ),
       ),
-      floatingActionButton: AnimatedContainer(
-        duration: Duration(milliseconds: 500), // 动画持续时间
-        curve: Curves.linear, // 动画曲线
-        width: _isSearching ? 80.0 : 80.0, // 当处于搜索状态时，按钮宽度变为0
-        height: _isSearching ? 200.0 : 80.0, // 高度也随之变化
+      floatingActionButton: Container(
+        width: 80.0,
+        height: 80.0,
         child: FloatingActionButton(
           onPressed: () {
-            if (_currentIndex == 1) {
-              // 如果当前在 Search Page，拍照
-              _takePicture();
-            } else {
-              // 切换到 Search Page
-              setState(() {
-                _isSearching = true; // 切换到搜索状态
-                Navigator.pushNamed(context, "/home/camera");
-              });
-            }
+            setState(() {
+              _isSearching = true;
+              Navigator.pushNamed(context, "/home/camera");
+            });
           },
-          child: Icon(Icons.camera_alt_outlined, size: 40), // 调整图标大小以适应按钮
+          child: Icon(
+            Icons.camera_alt_outlined,
+            size: 40,
+            color: Colors.white,
+          ),
           tooltip: 'Search',
           elevation: 5.0,
-          shape: CircleBorder(), // 圆形
+          backgroundColor: Colors.green,
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+
+  PageRouteBuilder _createPageTransition() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) {
+        // Define the new page to navigate to
+        return ProfileScreen();
+      },
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        // Define the animation for page transition
+        const begin = Offset(1.0, 0.0); // Starting point (slide from right)
+        const end = Offset.zero; // Ending point (slide to the current position)
+        const curve = Curves.easeInOut; // Curve for the animation
+
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var offsetAnimation = animation.drive(tween);
+
+        return SlideTransition(position: offsetAnimation, child: child);
+      },
     );
   }
 }
