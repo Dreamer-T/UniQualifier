@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class CameraScreen extends StatefulWidget {
   @override
@@ -9,6 +10,7 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
+  final textRecognizer = TextRecognizer();
   CameraController? _cameraController;
   List<CameraDescription>? cameras;
   late Future<void> _initializeControllerFuture;
@@ -28,7 +30,7 @@ class _CameraScreenState extends State<CameraScreen> {
     cameras = await availableCameras();
     if (cameras != null && cameras!.isNotEmpty) {
       _cameraController = CameraController(
-        cameras![0], // 使用后置摄像头
+        cameras![1], // 使用后置摄像头
         ResolutionPreset.high,
       );
 
@@ -42,24 +44,26 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   void dispose() {
-    _cameraController?.dispose();
     super.dispose();
+    _cameraController?.dispose();
   }
 
   Future<void> _takePicture() async {
+    print("照相");
     try {
       await _initializeControllerFuture;
-
       if (_cameraController!.value.isTakingPicture) {
         return;
       }
-
       // 拍照并返回图片文件
       XFile picture = await _cameraController!.takePicture();
-
       setState(() {
         _capturedImage = picture;
       });
+      final inputImage = InputImage.fromFile(File(picture.path));
+      final recognizedText = await textRecognizer.processImage(inputImage);
+      print("识别的题目为" + recognizedText.text + "|||||||||||||||||");
+      // 这个地方需要加入上传并返回答案
     } catch (e) {
       print(e);
     }
@@ -69,21 +73,25 @@ class _CameraScreenState extends State<CameraScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF006A4E),
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_sharp,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pop(context); // 返回到上一个页面
+          },
+        ),
+        elevation: 0,
       ),
-      backgroundColor: Colors.green,
+      backgroundColor: Colors.black,
       body: _isCameraInitialized
           ? Stack(
               children: [
-                if (_capturedImage == null) CameraPreview(_cameraController!),
-                if (_capturedImage != null)
-                  Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: const EdgeInsets.all(0.0),
-                      child: Image.file(File(_capturedImage!.path)),
-                    ),
-                  ),
+                // 相机预览界面
+                CameraPreview(_cameraController!),
+                // 拍照按钮
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
@@ -92,14 +100,14 @@ class _CameraScreenState extends State<CameraScreen> {
                       onPressed: () {
                         _takePicture();
                       },
-                      backgroundColor: const Color(0xFFB3CB39),
-                      child: Icon(Icons.camera),
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.camera, color: Colors.black),
                     ),
                   ),
                 ),
               ],
             )
-          : Center(child: CircularProgressIndicator()),
+          : Center(child: CircularProgressIndicator()), // 相机加载时显示进度条
     );
   }
 }

@@ -10,8 +10,6 @@ class _MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
 
-  bool _isSearching = false; // 是否处于搜索状态
-
   final List<Widget> _pages = [
     Center(
       child: Text("History Page"),
@@ -24,9 +22,6 @@ class _MainScreenState extends State<MainScreen>
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
-      if (_currentIndex != 1) {
-        _isSearching = false;
-      }
     });
   }
 
@@ -56,8 +51,6 @@ class _MainScreenState extends State<MainScreen>
         ],
       ),
       bottomNavigationBar: BottomAppBar(
-        shape: _isSearching ? null : CircularNotchedRectangle(),
-        notchMargin: _isSearching ? 0.0 : 10.0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
@@ -89,7 +82,6 @@ class _MainScreenState extends State<MainScreen>
         child: FloatingActionButton(
           onPressed: () {
             setState(() {
-              _isSearching = true;
               Navigator.pushNamed(context, "/home/camera");
             });
           },
